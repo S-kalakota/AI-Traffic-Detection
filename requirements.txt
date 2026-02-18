@@ -1,0 +1,16 @@
+flask==3.0.0
+flask-cors==4.0.0
+flask-socketio==5.3.6
+flask-sqlalchemy==3.1.1
+sqlalchemy==2.0.23
+opencv-python-headless==4.8.1.78
+numpy==1.26.2
+ultralytics==8.0.227
+requests==2.31.0
+apscheduler==3.10.4
+geopy==2.4.1
+python-dotenv==1.0.0
+gunicorn==21.2.0
+eventlet==0.35.1
+Pillow==10.1.0
+scipy==1.11.4

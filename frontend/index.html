@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DriveSight — AI-Powered Road Safety Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Leaflet for interactive maps -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet.heat plugin -->
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<!-- Socket.IO -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<!-- Chart.js for analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<!-- ===== HERO / LANDING ===== -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="sun-glow"></div>
+  <div class="mountains">
+    <svg viewBox="0 0 1440 300" preserveAspectRatio="none">
+      <path d="M0,300 L0,220 Q100,140 200,180 Q280,110 360,160 Q420,80 500,140 Q560,60 640,120 Q720,40 800,100 Q860,50 920,90 Q1000,30 1080,80 Q1140,50 1200,100 Q1280,60 1360,130 Q1400,110 1440,150 L1440,300 Z" fill="rgba(10,15,26,0.85)"/>
+      <path d="M0,300 L0,250 Q120,180 240,220 Q340,160 440,200 Q520,130 620,180 Q700,110 800,160 Q880,100 960,150 Q1060,90 1160,140 Q1240,110 1320,160 Q1380,140 1440,180 L1440,300 Z" fill="rgba(10,15,26,0.95)"/>
+    </svg>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">
+      <div class="logo-icon">🛡</div>
+      DriveSight
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">How It Works</a></li>
+      <li><a href="#stats">Impact</a></li>
+      <li><a href="#dashboard" class="nav-dashboard-link">Dashboard <span class="nav-badge">Live</span></a></li>
+      <li><a href="#" id="nav-api-link">API</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero-content">
+    <h1>AI-Powered<br><span class="accent">Road Safety</span><br>Intelligence</h1>
+    <div class="hero-divider line-reveal"></div>
+    <p>DriveSight monitors live California highway cameras to detect impaired and dangerous driving in real-time, generating dynamic heat maps of the state's most hazardous zones.</p>
+    <div class="cta-group">
+      <a href="#dashboard" class="cta-btn cta-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        View Live Heat Map
+      </a>
+      <a href="#features" class="cta-btn cta-secondary">Learn More</a>
+    </div>
+  </div>
+
+  <!-- Dashboard Preview Mockup -->
+  <div class="mockup-container reveal from-below-deep">
+    <div class="mockup-outer">
+      <div class="mockup-inner">
+        <div class="mockup-toolbar">
+          <div class="mockup-dot red"></div>
+          <div class="mockup-dot yellow"></div>
+          <div class="mockup-dot green"></div>
+          <div class="mockup-toolbar-title">DriveSight — California Real-Time Dashboard</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-sidebar">
+            <div class="sidebar-section-label">Active Alerts</div>
+            <div class="alert-card">
+              <span class="alert-badge">Critical Alert</span>
+              <span class="alert-location">I-405 S — Westwood</span>
+              <span class="alert-detail">Erratic lane changes & speed variance detected. Possible impaired driver. CHP notified.</span>
+            </div>
+            <div class="sidebar-section-label">Camera Feeds</div>
+            <div class="camera-feed-item">
+              <div class="camera-feed-preview">
+                <span class="camera-live-badge">Live</span>
+                <div class="road-graphic"></div>
+              </div>
+              <div class="camera-feed-meta">
+                <span>CAM-0417 · I-10 W</span>
+                <span class="status-ok">● Active</span>
+              </div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-box">
+                <div class="stat-num danger" id="mockup-alerts">23</div>
+                <div class="stat-label">Alerts Today</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-num safe" id="mockup-cameras">847</div>
+                <div class="stat-label">Cameras</div>
+              </div>
+            </div>
+          </div>
+          <div class="mockup-main">
+            <div class="heatmap-container">
+              <div class="map-grid-lines"></div>
+              <div class="california-map"></div>
+              <div class="heatmap-dot critical" style="width:100px;height:100px;bottom:22%;left:28%;animation-delay:0s;"></div>
+              <div class="heatmap-dot critical" style="width:70px;height:70px;bottom:25%;left:22%;animation-delay:0.5s;"></div>
+              <div class="heatmap-dot warning" style="width:80px;height:80px;bottom:30%;left:35%;animation-delay:1s;"></div>
+              <div class="heatmap-dot critical" style="width:85px;height:85px;top:28%;left:18%;animation-delay:0.3s;"></div>
+              <div class="heatmap-dot warning" style="width:60px;height:60px;top:32%;left:25%;animation-delay:0.8s;"></div>
+              <div class="heatmap-dot warning" style="width:55px;height:55px;top:25%;left:32%;animation-delay:1.2s;"></div>
+              <div class="heatmap-dot warning" style="width:65px;height:65px;bottom:12%;left:32%;animation-delay:0.7s;"></div>
+              <div class="heatmap-dot moderate" style="width:50px;height:50px;top:42%;left:30%;animation-delay:1.5s;"></div>
+              <div class="heatmap-dot safe" style="width:45px;height:45px;top:50%;left:35%;animation-delay:2s;"></div>
+              <div class="heatmap-dot moderate" style="width:55px;height:55px;bottom:35%;left:33%;animation-delay:1.8s;"></div>
+              <div class="heatmap-dot safe" style="width:40px;height:40px;top:12%;left:22%;animation-delay:2.2s;"></div>
+              <div class="map-label" style="top:26%;left:13%;">San Francisco</div>
+              <div class="map-label" style="top:22%;left:30%;">Sacramento</div>
+              <div class="map-label" style="bottom:24%;left:17%;">Los Angeles</div>
+              <div class="map-label" style="bottom:10%;left:28%;">San Diego</div>
+              <div class="map-label" style="top:10%;left:18%;">Redding</div>
+              <div class="map-label" style="bottom:38%;left:28%;">Bakersfield</div>
+              <div class="ai-tooltip">
+                <div class="tooltip-header">
+                  <span class="ai-chip">AI Detection</span>
+                </div>
+                <p>"Swerving pattern detected on I-405 southbound near Wilshire. Speed variance of 28 mph flagged. Confidence: 94%."</p>
+              </div>
+            </div>
+          </div>
+          <div class="mockup-bottom-bar">
+            <div class="bottom-action"><span class="action-icon">🔴</span> Live Alerts</div>
+            <div class="bottom-action"><span class="action-icon">🗺</span> Heat Map</div>
+            <div class="bottom-action"><span class="action-icon">📊</span> Analytics</div>
+            <div class="bottom-search">Search camera, highway, or region...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="features-section" id="features">
+  <div class="section-label reveal">How It Works</div>
+  <h2 class="section-title reveal stagger-1">Computer Vision Meets<br>Public Safety</h2>
+  <div class="features-grid">
+    <div class="feature-card reveal stagger-1">
+      <div class="feature-icon red">📹</div>
+      <h3>Live Camera Ingestion</h3>
+      <p>Continuously processes feeds from 800+ Caltrans highway cameras across California, analyzing vehicle behavior frame by frame in real time.</p>
+    </div>
+    <div class="feature-card reveal stagger-2">
+      <div class="feature-icon orange">🧠</div>
+      <h3>Impairment Detection AI</h3>
+      <p>Proprietary models trained on 2M+ driving incidents detect swerving, erratic speed changes, wrong-way driving, and other impairment signals with 94% accuracy.</p>
+    </div>
+    <div class="feature-card reveal stagger-3">
+      <div class="feature-icon green">🗺</div>
+      <h3>Dynamic Heat Mapping</h3>
+      <p>Detected incidents are geolocated and aggregated into a live heat map, revealing California's most dangerous corridors as they emerge — hour by hour.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="stats-banner" id="stats">
+  <div class="stats-grid">
+    <div class="stat-item reveal stagger-1">
+      <div class="big-num" id="stat-cameras">847</div>
+      <div class="stat-desc">Live cameras monitored</div>
+    </div>
+    <div class="stat-item reveal stagger-2">
+      <div class="big-num" id="stat-incidents">14K+</div>
+      <div class="stat-desc">Incidents flagged monthly</div>
+    </div>
+    <div class="stat-item reveal stagger-3">
+      <div class="big-num">94%</div>
+      <div class="stat-desc">Detection accuracy</div>
+    </div>
+    <div class="stat-item reveal stagger-4">
+      <div class="big-num">&lt;8s</div>
+      <div class="stat-desc">Average alert latency</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LIVE DASHBOARD ===== -->
+<section class="dashboard-section" id="dashboard">
+  <div class="dashboard-header">
+    <div class="dashboard-header-left">
+      <div class="section-label reveal">Live Dashboard</div>
+      <h2 class="section-title reveal stagger-1" style="margin-bottom:0;">California Highway<br>Safety Monitor</h2>
+    </div>
+    <div class="dashboard-header-right reveal stagger-2">
+      <div class="dash-stat-pills">
+        <div class="dash-pill">
+          <span class="dash-pill-dot critical-dot"></span>
+          <span class="dash-pill-label">Active Alerts</span>
+          <span class="dash-pill-value" id="dash-active-alerts">0</span>
+        </div>
+        <div class="dash-pill">
+          <span class="dash-pill-dot safe-dot"></span>
+          <span class="dash-pill-label">Cameras Online</span>
+          <span class="dash-pill-value" id="dash-cameras-online">0</span>
+        </div>
+        <div class="dash-pill">
+          <span class="dash-pill-dot warning-dot"></span>
+          <span class="dash-pill-label">Incidents Today</span>
+          <span class="dash-pill-value" id="dash-incidents-today">0</span>
+        </div>
+      </div>
+      <div class="dash-controls">
+        <select id="timerange-select" class="dash-select">
+          <option value="1">Last 1 Hour</option>
+          <option value="6">Last 6 Hours</option>
+          <option value="24" selected>Last 24 Hours</option>
+          <option value="72">Last 3 Days</option>
+          <option value="168">Last 7 Days</option>
+        </select>
+        <button class="dash-refresh-btn" id="refresh-btn" title="Refresh data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-body">
+    <!-- Sidebar: Alerts + Cameras -->
+    <div class="dash-sidebar">
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-header">
+          <h3>🔴 Live Alerts</h3>
+          <span class="alert-count-badge" id="alert-count-badge">0</span>
+        </div>
+        <div class="dash-alerts-list" id="alerts-container">
+          <div class="dash-loading">Loading alerts...</div>
+        </div>
+      </div>
+
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-header">
+          <h3>📹 Camera Feeds</h3>
+          <span class="camera-count-text" id="camera-count-text">0 active</span>
+        </div>
+        <div class="dash-camera-search">
+          <input type="text" id="camera-search" placeholder="Search camera or highway..." />
+        </div>
+        <div class="dash-cameras-list" id="cameras-container">
+          <div class="dash-loading">Loading cameras...</div>
+        </div>
+      </div>
+
+      <div class="dash-sidebar-section">
+        <div class="dash-sidebar-header">
+          <h3>📊 Incident Breakdown</h3>
+        </div>
+        <div class="incident-chart-container">
+          <canvas id="incident-type-chart"></canvas>
+        </div>
+        <div class="severity-chart-container">
+          <canvas id="severity-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main: Interactive Heat Map -->
+    <div class="dash-main">
+      <div class="dash-map-container" id="map-container">
+        <div id="heatmap" style="width:100%;height:100%;"></div>
+        <div class="map-overlay-legend">
+          <div class="legend-title">Danger Level</div>
+          <div class="legend-scale">
+            <div class="legend-bar"></div>
+            <div class="legend-labels">
+              <span>Low</span>
+              <span>Moderate</span>
+              <span>High</span>
+              <span>Critical</span>
+            </div>
+          </div>
+        </div>
+        <div class="map-overlay-info" id="map-info-panel" style="display:none;">
+          <div class="info-panel-header">
+            <span class="info-panel-title" id="info-panel-title">Incident Details</span>
+            <button class="info-panel-close" id="info-panel-close">&times;</button>
+          </div>
+          <div class="info-panel-body" id="info-panel-body"></div>
+        </div>
+      </div>
+
+      <!-- Bottom: Trend Chart -->
+      <div class="dash-trend-container reveal">
+        <div class="dash-trend-header">
+          <h3>7-Day Incident Trend</h3>
+          <div class="trend-legend">
+            <span class="trend-dot critical"></span> Critical
+            <span class="trend-dot warning"></span> Warning
+            <span class="trend-dot moderate"></span> Moderate
+          </div>
+        </div>
+        <div class="trend-chart-wrapper">
+          <canvas id="trend-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+  <h2 class="reveal">Make California's Roads<br>Safer, <span style="background:linear-gradient(135deg, #ff6b6b, #ffa06b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Together</span></h2>
+  <p class="reveal stagger-1">Join city agencies, CHP, and transportation planners already using DriveSight to prevent accidents before they happen.</p>
+  <div class="cta-group reveal stagger-2">
+    <a href="#" class="cta-btn cta-primary">Request Early Access</a>
+    <a href="#" class="cta-btn cta-secondary">View Documentation</a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="reveal">
+  <div class="footer-left">&copy; 2026 DriveSight. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">API Docs</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<!-- Application Scripts -->
+<script src="/js/websocket.js"></script>
+<script src="/js/heatmap.js"></script>
+<script src="/js/alerts.js"></script>
+<script src="/js/cameras.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>
